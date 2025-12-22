@@ -229,16 +229,6 @@ terraform destroy -var-file "./envs/piloto2.tfvars"
 
 ---
 
-## Security notes (recommended)
-
-- **Do not store secrets in Git.**
-  - Add `envs/*.tfvars` to `.gitignore` if this repo is shared.
-  - Prefer `TF_VAR_github_token` (environment variable), AWS SSM Parameter Store, or Secrets Manager.
-- **Keep `my_ips` strict.**
-  - The security model relies on an allowlist; avoid `0.0.0.0/0`.
-
----
-
 ## Troubleshooting
 
 - **“No valid credential sources found” / wrong account**
@@ -249,9 +239,3 @@ terraform destroy -var-file "./envs/piloto2.tfvars"
 - **Git clone fails in user_data**
   - Confirm the GitHub token has access to the repo and is valid.
   - Review cloud-init logs: `/var/log/cloud-init-output.log`.
-
----
-
-## License
-
-Internal / project-specific usage (add your license terms here).
