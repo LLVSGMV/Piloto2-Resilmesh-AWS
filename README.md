@@ -1,6 +1,6 @@
-# Piloto2 – RESILMESH – Terraform (AWS)
+# Piloto2 – Resilmesh – Terraform (AWS)
 
-Terraform codebase to provision a **minimal, security-conscious AWS footprint** for the **RESILMESH Pilot2** environment.  
+Terraform codebase to provision a **minimal, security-conscious AWS footprint** for the **Resilmesh Pilot2** environment.  
 It deploys networking, IAM, and a single EC2 instance ready to run containers (Docker + Compose) and bootstrap an application stack via a Git clone.
 
 ---
@@ -60,7 +60,7 @@ flowchart LR
 ├── outputs.tf
 ├── varibles.tf
 ├── envs/
-│   └── piloto2.tfvars
+│   └── piloto2.tfvars.example
 └── modules/
     ├── network/
     │   ├── main.tf
@@ -87,17 +87,56 @@ flowchart LR
   - VPC/Subnet/Route Tables/IGW/Security Groups
   - IAM Roles + Instance Profiles
   - EC2 instances + EIP
-- (Recommended) GitHub token with **minimum required scopes** to read the private repository used in bootstrap.
+- GitHub token with **minimum required scopes** to read the private repository used in bootstrap. (https://github.com/resilmesh2/Docker-Compose/)
 
 ---
 
 ## Configuration
 
+### GitHub Token
+
+To allow the EC2 instance to clone the private repository (`resilmesh2/Docker-Compose`) during the bootstrap phase, you need a **GitHub Personal Access Token (PAT)**.
+
+1.  Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**.
+2.  Click **Generate new token (classic)**.
+3.  **Scopes:** Select the `repo` scope (Full control of private repositories).
+4.  **Save the token:** Copy the generated string immediately; you will need to paste it into your `piloto2.tfvars` file.
+
+### SSH Key Pair
+
+This deployment disables password authentication for security. You must provide an **SSH Public Key** to access the server. The module is optimized for `ed25519` keys.
+
+1.  **Check for existing keys:**
+    ```bash
+    cat ~/.ssh/id_ed25519.pub
+    ```
+2.  **Generate a new pair (if needed):**
+    ```bash
+    ssh-keygen -t ed25519 -C "your_email@example.com"
+    ```
+3.  **Copy the key:** Copy the entire content of the `.pub` file. You will add this string to the `client_public_ssh_keys` list in your `tfvars` file.
+
+### AWS CLI
+
+Terraform interacts with AWS using your local credentials. You must have the AWS CLI installed and configured.
+
+1.  **Install AWS CLI:**
+    Follow the [official AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) for your operating system.
+
+2.  **Configure the Profile:**
+    The example configuration uses a named profile (`Resilmesh`). Configure it by running:
+    ```bash
+    aws configure --profile Resilmesh
+    ```
+
+3.  **Enter Credentials:**
+    When prompted, provide your **Access Key ID**, **Secret Access Key**, and the target **Region** (e.g., `eu-south-2`).
+
 This repo uses a **tfvars** file to keep environment-specific inputs together.
 
-### Example: `envs/piloto2.tfvars` (template)
+### Example: `envs/piloto2.tfvars.example` (template)
 
-> **Important:** do not commit real tokens/keys to git. Treat this file as sensitive.
+> **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `pilot2.tfvars`.
 
 ```hcl
 region  = "eu-south-2"
@@ -197,17 +236,6 @@ terraform destroy -var-file "./envs/piloto2.tfvars"
   - Prefer `TF_VAR_github_token` (environment variable), AWS SSM Parameter Store, or Secrets Manager.
 - **Keep `my_ips` strict.**
   - The security model relies on an allowlist; avoid `0.0.0.0/0`.
-- **Review exposed ports.**
-  - In `modules/network/main.tf`, `local.service_ports` defines which ports are opened to allowed IPs.
-- **SSM access**
-  - The instance role includes SSM Core. If you intend to use Session Manager, ensure the instance has outbound connectivity (it will, via the IGW + EIP) and that SSM endpoints are reachable.
-
----
-
-## Cost note (important)
-
-The EC2 root volume is configured as **gp3, encrypted, 1000 GiB**.  
-This can be a significant cost driver. If you are validating the deployment or running short-lived tests, consider reducing `root_block_device.volume_size` in `modules/ec2/main.tf`.
 
 ---
 
