@@ -100,7 +100,7 @@ To allow the EC2 instance to clone the private repository (`resilmesh2/Docker-Co
 1.  Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**.
 2.  Click **Generate new token (classic)**.
 3.  **Scopes:** Select the `repo` scope (Full control of private repositories).
-4.  **Save the token:** Copy the generated string immediately; you will need to paste it into your `piloto2.tfvars` file.
+4.  **Save the token:** Copy the generated string immediately, you will need to paste it into your `piloto2.tfvars` file them.
 
 ### SSH Key Pair
 
@@ -114,7 +114,7 @@ This deployment disables password authentication for security. You must provide 
     ```bash
     ssh-keygen -t ed25519 -C "your_email@example.com"
     ```
-3.  **Copy the key:** Copy the entire content of the `.pub` file. You will add this string to the `client_public_ssh_keys` list in your `tfvars` file.
+3.  **Copy the key:** Copy the entire content of the `.pub` file. You will add this string to the `client_public_ssh_keys` list in your `tfvars` file them.
 
 ### AWS CLI
 
@@ -136,7 +136,7 @@ This repo uses a **tfvars** file to keep environment-specific inputs together.
 
 ### Example: `envs/piloto2.tfvars.example` (template)
 
-> **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `pilot2.tfvars`.
+> **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `pilot2.tfvars`
 
 ```hcl
 region  = "eu-south-2"
@@ -170,6 +170,7 @@ Keeping configuration in `envs/piloto2.tfvars` helps you:
 ---
 
 ## Deploy
+> The following commands should be run from the root directory of the repository, using a terminal.
 
 ### Initialize
 
