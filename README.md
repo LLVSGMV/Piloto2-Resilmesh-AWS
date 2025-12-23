@@ -149,8 +149,7 @@ client_public_ssh_keys = [
 ]
 
 # GitHub token used by user_data to clone a private repo
-# Prefer using TF_VAR_github_token or a secrets manager instead of storing it in a file.
-github_token = "ghp_xxx_REDACTED_xxx"
+github_token = "ghp_xxxxxxxxxxxxxxx"
 
 # Source IPs allowed to access exposed service ports (CIDR /32 recommended)
 my_ips = [
