@@ -51,6 +51,7 @@ locals {
         sacd                = 4200
         nse_front           = 4201
         wazuh               = 4433
+        isim_autimation     = 5000
         dfir                = 5005
         neo4j               = 7474
         neo4j_internal      = 7687
