@@ -39,29 +39,32 @@ resource "aws_route_table_association" "public_assoc" {
 
 locals {
     service_ports = {
-        ssh             = 22
-        http            = 80
-        https           = 443
-        nse_back        = 3002
-        iob_stix        = 3400
-        shuffle         = 3443
-        graphql1        = 4001
-        sacd            = 4200
-        nse_front       = 4201
-        wazuh           = 4433
-        dfir            = 5000
-        neo4j           = 7474
-        neo4j_internal  = 7687
-        ndr             = 3000
-        isim            = 8000
-        thf_api         = 8030
-        temporal        = 8080
-        landing         = 8181
-        thf_ui          = 8501
-        iob_sanic       = 9003
-        wazuh_indexer   = 9201
-        misp            = 10443
-        ndr_server      = 31057
+        ssh                 = 22
+        http                = 80
+        https               = 443
+        ndr                 = 3000
+        nse_back            = 3002
+        ppcti_front         = 3100
+        iob_stix            = 3400
+        shuffle             = 3443
+        graphql1            = 4001
+        sacd                = 4200
+        nse_front           = 4201
+        wazuh               = 4433
+        dfir                = 5005
+        neo4j               = 7474
+        neo4j_internal      = 7687
+        isim                = 8000
+        thf_api             = 8030
+        ppcti_anonymizer    = 8070
+        temporal            = 8080
+        landing             = 8181
+        thf_ui              = 8501 
+        iob_sanic           = 9003
+        iob_flow_builder    = 9080
+        wazuh_indexer       = 9201
+        misp                = 10443
+        ndr_server          = 31057
     }
 }
 
