@@ -14,9 +14,12 @@ Both options converge on the same Docker Compose-based application stack.
 Terraform codebase to provision a **minimal, security-conscious AWS footprint** for the **Resilmesh Pilot2** environment.  
 It deploys networking, IAM, and a single EC2 instance ready to run containers (Docker + Compose) and bootstrap an application stack via a Git clone.
 
-### What this deploys
+### What Terraform Deploys
 
-#### Networking (`modules/network`)
+#### Networking
+
+**Module:** `modules/network`
+
 - **VPC** with DNS support/hostnames enabled
 - **Internet Gateway**
 - **Public subnet** (first CIDR from `public_subnets`) in the first available AZ
@@ -26,25 +29,29 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
   - Ingress opens a curated set of TCP ports (SSH, HTTP/HTTPS, and service ports) **only** to the allowed IPs
   - Egress open to `0.0.0.0/0`
 
-### IAM (`modules/iam`)
+#### IAM
+
+**Module:** `modules/iam`
+
 - EC2 IAM Role + Instance Profile
 - Attaches **AmazonSSMManagedInstanceCore** (enables AWS Systems Manager access)
 
-#### Compute (`modules/ec2`)
+#### Compute
+
+**Module:** `modules/ec2`
+
 - **Ubuntu 24.04 (Noble) AMI** (most recent) from Canonical owners
 - **Single EC2 instance** (in the public subnet) with:
   - EBS optimized + detailed monitoring enabled
-  - **Encrypted root volume** (gp3) sized to **1000 GiB** (see cost note below)
+  - **Encrypted root volume** (gp3) sized to **1000 GiB**
   - **Elastic IP** attached to the instance
 - `user_data` bootstrap:
   - Disables SSH password authentication and root login
   - Installs Docker Engine + Docker Compose v2 plugin
-  - Adds the provided client public SSH keys to `ubuntu`’s `authorized_keys`
+  - Adds the provided client public SSH keys to `ubuntu`'s `authorized_keys`
   - Clones `resilmesh2/Docker-Compose` with submodules using a GitHub token
 
----
-
-### Architecture (conceptual)
+### Architecture
 
 ```mermaid
 flowchart LR
@@ -57,9 +64,7 @@ flowchart LR
   EC2 --> IAM[IAM Instance Profile<br/>SSM Core]
 ```
 
----
-
-### Repository structure
+### Repository Structure
 
 ```text
 .
@@ -86,8 +91,6 @@ flowchart LR
         └── user_data.sh
 ```
 
----
-
 ### Prerequisites
 
 - **Terraform >= 1.6**
@@ -96,9 +99,7 @@ flowchart LR
   - VPC/Subnet/Route Tables/IGW/Security Groups
   - IAM Roles + Instance Profiles
   - EC2 instances + EIP
-- GitHub token with **minimum required scopes** to read the private repository used in bootstrap. (https://github.com/resilmesh2/Docker-Compose/)
-
----
+- GitHub token with **minimum required scopes** to read the private repository used in bootstrap (`https://github.com/resilmesh2/Docker-Compose/`)
 
 ### Configuration
 
@@ -106,46 +107,48 @@ flowchart LR
 
 To allow the EC2 instance to clone the private repository (`resilmesh2/Docker-Compose`) during the bootstrap phase, you need a **GitHub Personal Access Token (PAT)**.
 
-1.  Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**.
-2.  Click **Generate new token (classic)**.
-3.  **Scopes:** Select the `repo` scope (Full control of private repositories).
-4.  **Save the token:** Copy the generated string immediately, you will need to paste it into your `piloto2.tfvars` file them.
+1. Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. **Scopes:** Select the `repo` scope (Full control of private repositories)
+4. **Save the token:** Copy the generated string immediately, you will need to paste it into your `piloto2.tfvars` file
 
 #### SSH Key Pair
 
 This deployment disables password authentication for security. You must provide an **SSH Public Key** to access the server. The module is optimized for `ed25519` keys.
 
-1.  **Check for existing keys:**
-    ```bash
-    cat ~/.ssh/id_ed25519.pub
-    ```
-2.  **Generate a new pair (if needed):**
-    ```bash
-    ssh-keygen -t ed25519 -C "your_email@example.com"
-    ```
-3.  **Copy the key:** Copy the entire content of the `.pub` file. You will add this string to the `client_public_ssh_keys` list in your `tfvars` file them.
+1. **Check for existing keys:**
+   ```bash
+   cat ~/.ssh/id_ed25519.pub
+   ```
+2. **Generate a new pair (if needed):**
+   ```bash
+   ssh-keygen -t ed25519 -C "your_email@example.com"
+   ```
+3. **Copy the key:** Copy the entire content of the `.pub` file. You will add this string to the `client_public_ssh_keys` list in your `tfvars` file.
 
 #### AWS CLI
 
 Terraform interacts with AWS using your local credentials. You must have the AWS CLI installed and configured.
 
-1.  **Install AWS CLI:**
-    Follow the [official AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) for your operating system.
+1. **Install AWS CLI:**
+   Follow the [official AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) for your operating system.
 
-2.  **Configure the Profile:**
-    The example configuration uses a named profile (`Resilmesh`). Configure it by running:
-    ```bash
-    aws configure --profile Resilmesh
-    ```
+2. **Configure the Profile:**
+   The example configuration uses a named profile (`Resilmesh`). Configure it by running:
+   ```bash
+   aws configure --profile Resilmesh
+   ```
 
-3.  **Enter Credentials:**
-    When prompted, provide your **Access Key ID**, **Secret Access Key**, and the target **Region** (e.g., `eu-south-2`).
+3. **Enter Credentials:**
+   When prompted, provide your **Access Key ID**, **Secret Access Key**, and the target **Region** (e.g., `eu-south-2`).
+
+#### Configuration File
 
 This repo uses a **tfvars** file to keep environment-specific inputs together.
 
-#### Example: `envs/piloto2.tfvars.example` (template)
+##### Example: `envs/piloto2.tfvars.example`
 
-> **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `pilot2.tfvars`
+> **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `piloto2.tfvars`
 
 ```hcl
 region  = "eu-south-2"
@@ -167,7 +170,7 @@ my_ips = [
 ]
 ```
 
-#### Why `envs/piloto2.tfvars` matters
+##### Why `envs/piloto2.tfvars` matters
 
 Keeping configuration in `envs/piloto2.tfvars` helps you:
 - **Separate code from configuration** (same Terraform code can deploy different environments)
@@ -175,9 +178,8 @@ Keeping configuration in `envs/piloto2.tfvars` helps you:
 - **Rotate credentials easily** (e.g., change GitHub token or SSH keys without touching module code)
 - **Switch AWS target context** with `region` + `profile` (avoids accidental deployments to the wrong account/region)
 
----
+### Deployment Steps
 
-### Deploy
 > The following commands should be run from the root directory of the repository, using a terminal.
 
 #### Initialize
@@ -210,8 +212,6 @@ terraform apply -var-file ".\envs\piloto2.tfvars"
 terraform apply -var-file "./envs/piloto2.tfvars"
 ```
 
----
-
 ### Outputs
 
 After `apply`, Terraform returns:
@@ -220,9 +220,7 @@ After `apply`, Terraform returns:
 - `public_ip` (Elastic IP)
 - `private_ip`
 
----
-
-### Destroy (cleanup)
+### Cleanup
 
 > This will remove the infrastructure created by this repo, including the EC2 instance, EIP, and network components.
 
@@ -236,15 +234,307 @@ terraform destroy -var-file ".\envs\piloto2.tfvars"
 terraform destroy -var-file "./envs/piloto2.tfvars"
 ```
 
+### Troubleshooting
+
+#### No valid credential sources found
+
+Ensure `profile` in your tfvars matches a configured AWS CLI profile.
+
+#### Cannot reach the instance
+
+- Verify your public IP is present in `my_ips` (use `/32`)
+- Check that you are connecting to the **Elastic IP** from the Terraform output
+
+#### Git clone fails in user_data
+
+- Confirm the GitHub token has access to the repo and is valid
+- Review cloud-init logs: `/var/log/cloud-init-output.log`
+
 ---
+
+## Local Deployment (On-Premise)
+
+
+This option allows you to deploy Resilmesh on a physical server or local virtual machine running Ubuntu.
+
+### Prerequisites
+
+- **Ubuntu 20.04 or higher** (Ubuntu 24.04 recommended)
+- Sudo access to the server
+- Internet connection to download packages
+
+### Installing Docker and Docker Compose
+
+#### Step 1: Install Docker Engine
+
+Run the following commands on your Ubuntu server:
+
+```bash
+# Create directory for keyrings
+sudo install -m 0755 -d /etc/apt/keyrings
+
+# Add Docker's official GPG key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Set up Docker repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo $UBUNTU_CODENAME) stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Update package index and install Docker
+sudo apt-get update -y
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Enable and start Docker service
+sudo systemctl enable --now docker
+
+# Add your user to the docker group (replace 'ubuntu' with your username)
+sudo usermod -aG docker ubuntu
+```
+
+#### Step 2: Apply Group Changes
+
+For the docker group changes to take effect:
+
+```bash
+# Log out of the current session
+exit
+
+# Log back into the server
+```
+
+#### Step 3: Verify Installation
+
+After logging back in:
+
+```bash
+# Verify Docker version
+docker --version
+
+# Verify Docker Compose version
+docker compose version
+
+# Test Docker without sudo
+docker run hello-world
+```
+
+### Obtaining a GitHub Token
+
+To clone the private repository, you need a GitHub token:
+
+1. Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. **Scopes:** Select the `repo` scope (Full control of private repositories)
+4. **Save the token:** Copy the generated token, you will use it in the next step
+
+### Clone the Repository
+
+Use the following command, replacing `USER` with your GitHub username and `TOKEN` with the token you just generated:
+
+```bash
+git clone https://USER:TOKEN@github.com/resilmesh2/Docker-Compose.git
+```
+
+**Example:**
+```bash
+git clone https://johnsmith:ghp_ABCdef123XYZ456@github.com/resilmesh2/Docker-Compose.git
+```
+
+After successfully cloning, navigate to the directory:
+
+```bash
+cd Docker-Compose
+```
+
+---
+
+## Application Stack Deployment
+
+**This section applies to both AWS and On-Premise deployments.**
+
+Once you have:
+- ✅ Server with Docker and Docker Compose installed
+- ✅ `Docker-Compose` repository cloned
+
+Proceed with the following steps to deploy the application stack.
+
+### Environment Configuration
+
+#### Navigate to the repository
+
+```bash
+cd Docker-Compose
+```
+
+#### Review project structure
+
+The repository contains the necessary files to deploy the services:
+
+```text
+Docker-Compose/
+├── docker-compose.yml
+├── .env.example
+├── services/
+│   └── [service directories]
+└── README.md
+```
+
+#### Configure environment variables
+
+Copy the example file and edit it with your configurations:
+
+```bash
+cp .env.example .env
+nano .env  # or use vim, vi, or any editor of your choice
+```
+
+Adjust the variables according to your environment (URLs, credentials, ports, etc.).
+
+### Starting the Services
+
+#### Deploy all services
+
+```bash
+docker compose up -d
+```
+
+#### Check container status
+
+```bash
+docker compose ps
+```
+
+#### View service logs
+
+```bash
+# View logs from all services
+docker compose logs -f
+
+# View logs from a specific service
+docker compose logs -f [service-name]
+```
+
+### Service Management
+
+#### Stop services
+
+```bash
+docker compose down
+```
+
+#### Restart services
+
+```bash
+docker compose restart
+```
+
+#### Update services
+
+```bash
+# Get latest changes from the repository
+git pull
+
+# Rebuild and restart updated services
+docker compose up -d --build
+```
+
+#### Remove volumes
+
+> **CAUTION:** This deletes persistent data
+
+```bash
+docker compose down -v
+```
+
+### Accessing the Services
+
+Depending on your configuration, services will be available at:
+
+- **AWS (Terraform):** `http://<ELASTIC_IP>:<port>`
+- **On-Premise:** `http://<SERVER_IP>:<port>` or `http://localhost:<port>`
+
+Consult the `docker-compose.yml` file to see the exposed ports for each service.
 
 ### Troubleshooting
 
-- **“No valid credential sources found” / wrong account**
-  - Ensure `profile` in your tfvars matches a configured AWS CLI profile.
-- **Cannot reach the instance**
-  - Verify your public IP is present in `my_ips` (use `/32`).
-  - Check that you are connecting to the **Elastic IP** from the Terraform output.
-- **Git clone fails in user_data**
-  - Confirm the GitHub token has access to the repo and is valid.
-  - Review cloud-init logs: `/var/log/cloud-init-output.log`.
+#### Docker permission issues
+
+If you get permission errors:
+
+```bash
+# Verify you are in the docker group
+groups
+
+# If 'docker' doesn't appear, add yourself again and log out
+sudo usermod -aG docker $USER
+exit
+```
+
+#### Containers not starting
+
+```bash
+# View detailed logs
+docker compose logs [service-name]
+
+# Check system resources
+docker system df
+free -h
+df -h
+```
+
+#### Network issues between containers
+
+```bash
+# Inspect the Docker Compose network
+docker network ls
+docker network inspect docker-compose_default
+```
+
+#### Clean up unused resources
+
+```bash
+# Remove stopped containers, unused networks, dangling images
+docker system prune -a
+
+# Free up space from unused volumes (CAUTION)
+docker volume prune
+```
+
+### Maintenance
+
+#### Backing up volumes
+
+```bash
+# List volumes
+docker volume ls
+
+# Backup a specific volume
+docker run --rm -v [volume-name]:/data -v $(pwd):/backup ubuntu tar czf /backup/backup-$(date +%Y%m%d).tar.gz /data
+```
+
+#### Resource monitoring
+
+```bash
+# View real-time resource usage
+docker stats
+
+# View space used by Docker
+docker system df
+```
+
+---
+
+## Support
+
+For issues or questions:
+
+1. Review the logs: `docker compose logs -f`
+2. Consult the Docker-Compose repository documentation
+3. Contact the Resilmesh team
+
+---
+
+**Documentation updated:** January 2026
