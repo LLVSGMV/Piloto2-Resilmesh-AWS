@@ -9,14 +9,17 @@ Both options converge on the same Docker Compose-based application stack.
 
 ---
 
-# Option 1: AWS Deployment (Terraform)
+# AWS Deployment (Terraform)
 
 Terraform codebase to provision a **minimal, security-conscious AWS footprint** for the **Resilmesh Pilot2** environment.  
 It deploys networking, IAM, and a single EC2 instance ready to run containers (Docker + Compose) and bootstrap an application stack via a Git clone.
 
 ## What Terraform Deploys
 
-### Networking (`modules/network`)
+### Networking
+
+**Module:** `modules/network`
+
 - **VPC** with DNS support/hostnames enabled
 - **Internet Gateway**
 - **Public subnet** (first CIDR from `public_subnets`) in the first available AZ
@@ -26,11 +29,17 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
   - Ingress opens a curated set of TCP ports (SSH, HTTP/HTTPS, and service ports) **only** to the allowed IPs
   - Egress open to `0.0.0.0/0`
 
-### IAM (`modules/iam`)
+### IAM
+
+**Module:** `modules/iam`
+
 - EC2 IAM Role + Instance Profile
 - Attaches **AmazonSSMManagedInstanceCore** (enables AWS Systems Manager access)
 
-### Compute (`modules/ec2`)
+### Compute
+
+**Module:** `modules/ec2`
+
 - **Ubuntu 24.04 (Noble) AMI** (most recent) from Canonical owners
 - **Single EC2 instance** (in the public subnet) with:
   - EBS optimized + detailed monitoring enabled
@@ -42,7 +51,7 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
   - Adds the provided client public SSH keys to `ubuntu`'s `authorized_keys`
   - Clones `resilmesh2/Docker-Compose` with submodules using a GitHub token
 
-## Architecture (conceptual)
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -82,7 +91,7 @@ flowchart LR
         └── user_data.sh
 ```
 
-## Prerequisites for Terraform
+## Prerequisites
 
 - **Terraform >= 1.6**
 - AWS credentials configured locally (e.g., via `aws configure --profile <profile>`)
@@ -92,7 +101,7 @@ flowchart LR
   - EC2 instances + EIP
 - GitHub token with **minimum required scopes** to read the private repository used in bootstrap (`https://github.com/resilmesh2/Docker-Compose/`)
 
-## Terraform Configuration
+## Configuration
 
 ### GitHub Token
 
@@ -133,9 +142,11 @@ Terraform interacts with AWS using your local credentials. You must have the AWS
 3. **Enter Credentials:**
    When prompted, provide your **Access Key ID**, **Secret Access Key**, and the target **Region** (e.g., `eu-south-2`).
 
+### Configuration File
+
 This repo uses a **tfvars** file to keep environment-specific inputs together.
 
-### Example: `envs/piloto2.tfvars.example` (template)
+#### Example: `envs/piloto2.tfvars.example`
 
 > **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `piloto2.tfvars`
 
@@ -159,7 +170,7 @@ my_ips = [
 ]
 ```
 
-### Why `envs/piloto2.tfvars` matters
+#### Why `envs/piloto2.tfvars` matters
 
 Keeping configuration in `envs/piloto2.tfvars` helps you:
 - **Separate code from configuration** (same Terraform code can deploy different environments)
@@ -167,7 +178,7 @@ Keeping configuration in `envs/piloto2.tfvars` helps you:
 - **Rotate credentials easily** (e.g., change GitHub token or SSH keys without touching module code)
 - **Switch AWS target context** with `region` + `profile` (avoids accidental deployments to the wrong account/region)
 
-## Deploy with Terraform
+## Deployment Steps
 
 > The following commands should be run from the root directory of the repository, using a terminal.
 
@@ -201,7 +212,7 @@ terraform apply -var-file ".\envs\piloto2.tfvars"
 terraform apply -var-file "./envs/piloto2.tfvars"
 ```
 
-## Terraform Outputs
+## Outputs
 
 After `apply`, Terraform returns:
 
@@ -209,7 +220,7 @@ After `apply`, Terraform returns:
 - `public_ip` (Elastic IP)
 - `private_ip`
 
-## Destroy (cleanup)
+## Cleanup
 
 > This will remove the infrastructure created by this repo, including the EC2 instance, EIP, and network components.
 
@@ -223,24 +234,29 @@ terraform destroy -var-file ".\envs\piloto2.tfvars"
 terraform destroy -var-file "./envs/piloto2.tfvars"
 ```
 
-## Terraform Troubleshooting
+## Troubleshooting
 
-- **"No valid credential sources found" / wrong account**
-  - Ensure `profile` in your tfvars matches a configured AWS CLI profile
-- **Cannot reach the instance**
-  - Verify your public IP is present in `my_ips` (use `/32`)
-  - Check that you are connecting to the **Elastic IP** from the Terraform output
-- **Git clone fails in user_data**
-  - Confirm the GitHub token has access to the repo and is valid
-  - Review cloud-init logs: `/var/log/cloud-init-output.log`
+### No valid credential sources found
+
+Ensure `profile` in your tfvars matches a configured AWS CLI profile.
+
+### Cannot reach the instance
+
+- Verify your public IP is present in `my_ips` (use `/32`)
+- Check that you are connecting to the **Elastic IP** from the Terraform output
+
+### Git clone fails in user_data
+
+- Confirm the GitHub token has access to the repo and is valid
+- Review cloud-init logs: `/var/log/cloud-init-output.log`
 
 ---
 
-# Option 2: Local Deployment (On-Premise)
+# Local Deployment (On-Premise)
 
 This option allows you to deploy Resilmesh on a physical server or local virtual machine running Ubuntu.
 
-## Prerequisites for Local Deployment
+## Prerequisites
 
 - **Ubuntu 20.04 or higher** (Ubuntu 24.04 recommended)
 - Sudo access to the server
@@ -306,14 +322,14 @@ docker run hello-world
 
 ## Obtaining a GitHub Token
 
-To clone the private repository, you need a GitHub token (same process as in the Terraform option):
+To clone the private repository, you need a GitHub token:
 
 1. Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
 2. Click **Generate new token (classic)**
 3. **Scopes:** Select the `repo` scope (Full control of private repositories)
 4. **Save the token:** Copy the generated token, you will use it in the next step
 
-## Clone the Docker Compose Repository
+## Clone the Repository
 
 Use the following command, replacing `USER` with your GitHub username and `TOKEN` with the token you just generated:
 
@@ -346,13 +362,13 @@ Proceed with the following steps to deploy the application stack.
 
 ## Environment Configuration
 
-### 1. Navigate to the repository directory
+### Navigate to the repository
 
 ```bash
 cd Docker-Compose
 ```
 
-### 2. Review project structure
+### Review project structure
 
 The repository contains the necessary files to deploy the services:
 
@@ -365,7 +381,7 @@ Docker-Compose/
 └── README.md
 ```
 
-### 3. Configure environment variables
+### Configure environment variables
 
 Copy the example file and edit it with your configurations:
 
@@ -424,7 +440,9 @@ git pull
 docker compose up -d --build
 ```
 
-### Remove volumes (CAUTION: deletes persistent data)
+### Remove volumes
+
+> **CAUTION:** This deletes persistent data
 
 ```bash
 docker compose down -v
@@ -439,7 +457,7 @@ Depending on your configuration, services will be available at:
 
 Consult the `docker-compose.yml` file to see the exposed ports for each service.
 
-## General Troubleshooting
+## Troubleshooting
 
 ### Docker permission issues
 
@@ -474,7 +492,7 @@ docker network ls
 docker network inspect docker-compose_default
 ```
 
-### Clean up unused Docker resources
+### Clean up unused resources
 
 ```bash
 # Remove stopped containers, unused networks, dangling images
@@ -508,7 +526,7 @@ docker system df
 
 ---
 
-## Support
+# Support
 
 For issues or questions:
 
