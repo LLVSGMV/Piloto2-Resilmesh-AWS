@@ -1,13 +1,22 @@
-# Piloto2 – Resilmesh – Terraform (AWS)
+# Piloto2 – Resilmesh – Deployment Guide
+
+This documentation covers two deployment options for the **Resilmesh Pilot2** environment:
+
+1. **AWS Deployment (Terraform)** – Automated cloud infrastructure
+2. **Local Deployment (On-Premise)** – Physical server or local VM
+
+Both options converge on the same Docker Compose-based application stack.
+
+---
+
+## AWS Deployment (Terraform)
 
 Terraform codebase to provision a **minimal, security-conscious AWS footprint** for the **Resilmesh Pilot2** environment.  
 It deploys networking, IAM, and a single EC2 instance ready to run containers (Docker + Compose) and bootstrap an application stack via a Git clone.
 
----
+### What this deploys
 
-## What this deploys
-
-### Networking (`modules/network`)
+#### Networking (`modules/network`)
 - **VPC** with DNS support/hostnames enabled
 - **Internet Gateway**
 - **Public subnet** (first CIDR from `public_subnets`) in the first available AZ
@@ -21,7 +30,7 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
 - EC2 IAM Role + Instance Profile
 - Attaches **AmazonSSMManagedInstanceCore** (enables AWS Systems Manager access)
 
-### Compute (`modules/ec2`)
+#### Compute (`modules/ec2`)
 - **Ubuntu 24.04 (Noble) AMI** (most recent) from Canonical owners
 - **Single EC2 instance** (in the public subnet) with:
   - EBS optimized + detailed monitoring enabled
@@ -35,7 +44,7 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
 
 ---
 
-## Architecture (conceptual)
+### Architecture (conceptual)
 
 ```mermaid
 flowchart LR
@@ -50,7 +59,7 @@ flowchart LR
 
 ---
 
-## Repository structure
+### Repository structure
 
 ```text
 .
@@ -79,7 +88,7 @@ flowchart LR
 
 ---
 
-## Prerequisites
+### Prerequisites
 
 - **Terraform >= 1.6**
 - AWS credentials configured locally (e.g., via `aws configure --profile <profile>`)
@@ -91,9 +100,9 @@ flowchart LR
 
 ---
 
-## Configuration
+### Configuration
 
-### GitHub Token
+#### GitHub Token
 
 To allow the EC2 instance to clone the private repository (`resilmesh2/Docker-Compose`) during the bootstrap phase, you need a **GitHub Personal Access Token (PAT)**.
 
@@ -102,7 +111,7 @@ To allow the EC2 instance to clone the private repository (`resilmesh2/Docker-Co
 3.  **Scopes:** Select the `repo` scope (Full control of private repositories).
 4.  **Save the token:** Copy the generated string immediately, you will need to paste it into your `piloto2.tfvars` file them.
 
-### SSH Key Pair
+#### SSH Key Pair
 
 This deployment disables password authentication for security. You must provide an **SSH Public Key** to access the server. The module is optimized for `ed25519` keys.
 
@@ -116,7 +125,7 @@ This deployment disables password authentication for security. You must provide 
     ```
 3.  **Copy the key:** Copy the entire content of the `.pub` file. You will add this string to the `client_public_ssh_keys` list in your `tfvars` file them.
 
-### AWS CLI
+#### AWS CLI
 
 Terraform interacts with AWS using your local credentials. You must have the AWS CLI installed and configured.
 
@@ -134,7 +143,7 @@ Terraform interacts with AWS using your local credentials. You must have the AWS
 
 This repo uses a **tfvars** file to keep environment-specific inputs together.
 
-### Example: `envs/piloto2.tfvars.example` (template)
+#### Example: `envs/piloto2.tfvars.example` (template)
 
 > **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `pilot2.tfvars`
 
@@ -158,7 +167,7 @@ my_ips = [
 ]
 ```
 
-### Why `envs/piloto2.tfvars` matters
+#### Why `envs/piloto2.tfvars` matters
 
 Keeping configuration in `envs/piloto2.tfvars` helps you:
 - **Separate code from configuration** (same Terraform code can deploy different environments)
@@ -168,16 +177,16 @@ Keeping configuration in `envs/piloto2.tfvars` helps you:
 
 ---
 
-## Deploy
+### Deploy
 > The following commands should be run from the root directory of the repository, using a terminal.
 
-### Initialize
+#### Initialize
 
 ```bash
 terraform init
 ```
 
-### Plan
+#### Plan
 
 **PowerShell (Windows):**
 ```powershell
@@ -189,7 +198,7 @@ terraform plan -var-file ".\envs\piloto2.tfvars"
 terraform plan -var-file "./envs/piloto2.tfvars"
 ```
 
-### Apply
+#### Apply
 
 **PowerShell (Windows):**
 ```powershell
@@ -203,7 +212,7 @@ terraform apply -var-file "./envs/piloto2.tfvars"
 
 ---
 
-## Outputs
+### Outputs
 
 After `apply`, Terraform returns:
 
@@ -213,7 +222,7 @@ After `apply`, Terraform returns:
 
 ---
 
-## Destroy (cleanup)
+### Destroy (cleanup)
 
 > This will remove the infrastructure created by this repo, including the EC2 instance, EIP, and network components.
 
@@ -229,7 +238,7 @@ terraform destroy -var-file "./envs/piloto2.tfvars"
 
 ---
 
-## Troubleshooting
+### Troubleshooting
 
 - **“No valid credential sources found” / wrong account**
   - Ensure `profile` in your tfvars matches a configured AWS CLI profile.
