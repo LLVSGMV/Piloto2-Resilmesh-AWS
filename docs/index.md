@@ -356,98 +356,29 @@ cd Docker-Compose
 **This section applies to both AWS and On-Premise deployments.**
 
 Once you have:
+
 - ✅ Server with Docker and Docker Compose installed
+
 - ✅ `Docker-Compose` repository cloned
 
 Proceed with the following steps to deploy the application stack.
 
-### Environment Configuration
-
-#### Navigate to the repository
-
+### Start the Resilmesh deployment script
+- First of all, log in to Doker with your account
 ```bash
-cd Docker-Compose
+docker login
 ```
 
-#### Review project structure
-
-The repository contains the necessary files to deploy the services:
-
-```text
-Docker-Compose/
-├── docker-compose.yml
-├── .env.example
-├── services/
-│   └── [service directories]
-└── README.md
-```
-
-#### Configure environment variables
-
-Copy the example file and edit it with your configurations:
-
+- Once you are logged in, navigate to the Scripts folder
 ```bash
-cp .env.example .env
-nano .env  # or use vim, vi, or any editor of your choice
+cd Docker-Compose/Scripts/
 ```
 
-Adjust the variables according to your environment (URLs, credentials, ports, etc.).
-
-### Starting the Services
-
-#### Deploy all services
-
+- Run the following command
 ```bash
-docker compose up -d
+./init.sh
 ```
-
-#### Check container status
-
-```bash
-docker compose ps
-```
-
-#### View service logs
-
-```bash
-# View logs from all services
-docker compose logs -f
-
-# View logs from a specific service
-docker compose logs -f [service-name]
-```
-
-### Service Management
-
-#### Stop services
-
-```bash
-docker compose down
-```
-
-#### Restart services
-
-```bash
-docker compose restart
-```
-
-#### Update services
-
-```bash
-# Get latest changes from the repository
-git pull
-
-# Rebuild and restart updated services
-docker compose up -d --build
-```
-
-#### Remove volumes
-
-> **CAUTION:** This deletes persistent data
-
-```bash
-docker compose down -v
-```
+Follow the instructions in the script
 
 ### Accessing the Services
 
@@ -456,74 +387,7 @@ Depending on your configuration, services will be available at:
 - **AWS (Terraform):** `http://<ELASTIC_IP>:<port>`
 - **On-Premise:** `http://<SERVER_IP>:<port>` or `http://localhost:<port>`
 
-Consult the `docker-compose.yml` file to see the exposed ports for each service.
-
-### Troubleshooting
-
-#### Docker permission issues
-
-If you get permission errors:
-
-```bash
-# Verify you are in the docker group
-groups
-
-# If 'docker' doesn't appear, add yourself again and log out
-sudo usermod -aG docker $USER
-exit
-```
-
-#### Containers not starting
-
-```bash
-# View detailed logs
-docker compose logs [service-name]
-
-# Check system resources
-docker system df
-free -h
-df -h
-```
-
-#### Network issues between containers
-
-```bash
-# Inspect the Docker Compose network
-docker network ls
-docker network inspect docker-compose_default
-```
-
-#### Clean up unused resources
-
-```bash
-# Remove stopped containers, unused networks, dangling images
-docker system prune -a
-
-# Free up space from unused volumes (CAUTION)
-docker volume prune
-```
-
-### Maintenance
-
-#### Backing up volumes
-
-```bash
-# List volumes
-docker volume ls
-
-# Backup a specific volume
-docker run --rm -v [volume-name]:/data -v $(pwd):/backup ubuntu tar czf /backup/backup-$(date +%Y%m%d).tar.gz /data
-```
-
-#### Resource monitoring
-
-```bash
-# View real-time resource usage
-docker stats
-
-# View space used by Docker
-docker system df
-```
+Consult the `output_summary.txt` file to see the exposed ports for each service.
 
 ---
 
