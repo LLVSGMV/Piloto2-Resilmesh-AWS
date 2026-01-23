@@ -1,12 +1,2 @@
 site_name: Documentation of Resilmesh Proyect
 theme: readthedocs
-
-markdown_extensions:
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-
-extra_javascript:
-  - https://unpkg.com/mermaid@10/dist/mermaid.min.js

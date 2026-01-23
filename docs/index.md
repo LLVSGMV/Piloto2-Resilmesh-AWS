@@ -52,15 +52,15 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
     * Clones `resilmesh2/Docker-Compose` with submodules using a GitHub token
 
 ### Architecture
-```mermaid
+```
 flowchart LR
-    Internet([Internet]) -->|Allowed source IPs only| SG[Security Groupsper-IP allowlist]
-    SG --> EIP[Elastic IP]
-    EIP --> EC2[EC2 Ubuntu 24.04]
-    EC2 -->|Default route| RT[Public Route Table]
-    RT --> IGW[Internet Gateway]
-    IGW --> Internet
-    EC2 --> IAM[IAM Instance ProfileSSM Core]
+  Internet([Internet]) -->|Allowed source IPs only| SG[Security Groups<br/>per-IP allowlist]
+  SG --> EIP[Elastic IP]
+  EIP --> EC2[EC2 Ubuntu 24.04]
+  EC2 -->|Default route| RT[Public Route Table]
+  RT --> IGW[Internet Gateway]
+  IGW --> Internet
+  EC2 --> IAM[IAM Instance Profile<br/>SSM Core]
 ```
 
 ### Repository Structure
