@@ -54,13 +54,13 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
 ### Architecture
 ```mermaid
 flowchart LR
-  Internet([Internet]) -->|Allowed source IPs only| SG[Security Groups<br/>per-IP allowlist]
-  SG --> EIP[Elastic IP]
-  EIP --> EC2[EC2 Ubuntu 24.04]
-  EC2 -->|Default route| RT[Public Route Table]
-  RT --> IGW[Internet Gateway]
-  IGW --> Internet
-  EC2 --> IAM[IAM Instance Profile<br/>SSM Core]
+    Internet([Internet]) -->|Allowed source IPs only| SG[Security Groups<br/>per-IP allowlist]
+    SG --> EIP[Elastic IP]
+    EIP --> EC2[EC2 Ubuntu 24.04]
+    EC2 -->|Default route| RT[Public Route Table]
+    RT --> IGW[Internet Gateway]
+    IGW --> Internet
+    EC2 --> IAM[IAM Instance Profile<br/>SSM Core]
 ```
 
 ### Repository Structure
@@ -147,7 +147,7 @@ This repo uses a **tfvars** file to keep environment-specific inputs together.
 
 ##### Example: `envs/piloto2.tfvars.example`
 
-> **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `piloto2.tfvars`
+**Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `piloto2.tfvars`
 
 ```hcl
 region  = "eu-west-1"
@@ -172,6 +172,7 @@ my_ips = [
 ##### Why `envs/piloto2.tfvars` matters
 
 Keeping configuration in `envs/piloto2.tfvars` helps you:
+
 * **Separate code from configuration** (same Terraform code can deploy different environments)
 * **Reproducibly control access** via `my_ips` (tight allowlist rather than open inbound)
 * **Rotate credentials easily** (e.g., change GitHub token or SSH keys without touching module code)
@@ -370,6 +371,7 @@ All tests were performed using these versions:
 ### Obtaining a GitHub Token
 
 To clone the private repository, you need a GitHub token:
+
 1. Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
 2. Click **Generate new token (classic)**
 3. **Scopes:** Select the `repo` scope (Full control of private repositories)
@@ -403,6 +405,7 @@ cd Docker-Compose
 ### API Key Collection for Resilmesh Platform v2 Environment
 
 First, make sure you have the keys you'll need:
+
 * **Aggregation Plane**: If your environment includes the deployment of the **Aggregation Plane**, a valid **SLP Enrichment API Key** is required prior to installation. If you do not have one, please contact **Maja Otic (motic@silentpush.com)**.
 * **Threat Awareness Plane**: If your environment deploys the **Threat Awareness Plane**, specifically the **Threat Hunting and Forensics (THF)** module, please note it consists of two core components:
     * **DFIR**: Requires the corresponding API keys for the LLM models to be utilized (e.g., **Alias, Anthropic Claude 4 Sonnet, Ollama**, or others).
