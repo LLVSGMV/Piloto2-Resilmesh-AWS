@@ -1,5 +1,6 @@
 site_name: Documentation of Resilmesh Proyect
-theme: readthedocs
+theme:
+  name: material
 
 markdown_extensions:
   - pymdownx.superfences:
