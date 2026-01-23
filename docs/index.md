@@ -1,6 +1,6 @@
-# Piloto2 – Resilmesh – Deployment Guide
+# Resilmesh v2: Deployment Guide
 
-This documentation covers two deployment options for the **Resilmesh Pilot2** environment:
+This documentation covers two deployment options for the **Resilmesh v2** environment:
 
 1. **AWS Deployment (Terraform)** – Automated cloud infrastructure
 2. **Local Deployment (On-Premise)** – Physical server or local VM
@@ -11,7 +11,7 @@ Both options converge on the same Docker Compose-based application stack.
 
 ## AWS Deployment (Terraform)
 
-Terraform codebase to provision a **minimal, security-conscious AWS footprint** for the **Resilmesh Pilot2** environment.  
+Terraform codebase to provision a **minimal, security-conscious AWS footprint** for the **Resilmesh v2** environment.  
 It deploys networking, IAM, and a single EC2 instance ready to run containers (Docker + Compose) and bootstrap an application stack via a Git clone.
 
 ### What Terraform Deploys
@@ -20,14 +20,14 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
 
 **Module:** `modules/network`
 
-- **VPC** with DNS support/hostnames enabled
-- **Internet Gateway**
-- **Public subnet** (first CIDR from `public_subnets`) in the first available AZ
-- **Public route table** + default route to the IGW
-- **Security Groups restricted by source IP**:
-  - One security group per IP in `my_ips`
-  - Ingress opens a curated set of TCP ports (SSH, HTTP/HTTPS, and service ports) **only** to the allowed IPs
-  - Egress open to `0.0.0.0/0`
+* **VPC** with DNS support/hostnames enabled
+* **Internet Gateway**
+* **Public subnet** (first CIDR from `public_subnets`) in the first available AZ
+* **Public route table** + default route to the IGW
+* **Security Groups restricted by source IP**:
+    * One security group per IP in `my_ips`
+    * Ingress opens a curated set of TCP ports (SSH, HTTP/HTTPS, and service ports) **only** to the allowed IPs
+    * Egress open to `0.0.0.0/0`
 
 #### IAM
 
@@ -40,19 +40,18 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
 
 **Module:** `modules/ec2`
 
-- **Ubuntu 24.04 (Noble) AMI** (most recent) from Canonical owners
-- **Single EC2 instance** (in the public subnet) with:
-  - EBS optimized + detailed monitoring enabled
-  - **Encrypted root volume** (gp3) sized to **1000 GiB**
-  - **Elastic IP** attached to the instance
-- `user_data` bootstrap:
-  - Disables SSH password authentication and root login
-  - Installs Docker Engine + Docker Compose v2 plugin
-  - Adds the provided client public SSH keys to `ubuntu`'s `authorized_keys`
-  - Clones `resilmesh2/Docker-Compose` with submodules using a GitHub token
+* **Ubuntu 24.04 (Noble) AMI** (most recent) from Canonical owners
+* **Single EC2 instance** (in the public subnet) with:
+    * EBS optimized + detailed monitoring enabled
+    * **Encrypted root volume** (gp3) sized to **1000 GiB**
+    * **Elastic IP** attached to the instance
+* `user_data` bootstrap:
+    * Disables SSH password authentication and root login
+    * Installs Docker Engine + Docker Compose v2 plugin
+    * Adds the provided client public SSH keys to `ubuntu`'s `authorized_keys`
+    * Clones `resilmesh2/Docker-Compose` with submodules using a GitHub token
 
 ### Architecture
-
 ```mermaid
 flowchart LR
   Internet([Internet]) -->|Allowed source IPs only| SG[Security Groups<br/>per-IP allowlist]
@@ -110,7 +109,7 @@ To allow the EC2 instance to clone the private repository (`resilmesh2/Docker-Co
 1. Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
 2. Click **Generate new token (classic)**
 3. **Scopes:** Select the `repo` scope (Full control of private repositories)
-4. **Save the token:** Copy the generated string immediately, you will need to paste it into your `piloto2.tfvars` file
+4. **Save the token:** Copy the generated string immediately, you will need them
 
 #### SSH Key Pair
 
@@ -151,7 +150,7 @@ This repo uses a **tfvars** file to keep environment-specific inputs together.
 > **Important:** do not commit real tokens/keys to git. Therefore, copy this file to the same path and name it `piloto2.tfvars`
 
 ```hcl
-region  = "eu-south-2"
+region  = "eu-west-1"
 profile = "Resilmesh"
 
 # Public keys allowed to SSH into the instance as ubuntu
@@ -250,6 +249,13 @@ Ensure `profile` in your tfvars matches a configured AWS CLI profile.
 - Confirm the GitHub token has access to the repo and is valid
 - Review cloud-init logs: `/var/log/cloud-init-output.log`
 
+#### Error when trying to enter via ssh
+
+If you rebuilt the instance but did not do so with the EIP (the public IP remains the same), you will likely see a WARNING window. In that case, use this command and then try logging in again:
+```bash
+ssh-keygen -R <Public IP>
+```
+
 ---
 
 ## Local Deployment (On-Premise)
@@ -259,9 +265,44 @@ This option allows you to deploy Resilmesh on a physical server or local virtual
 
 ### Prerequisites
 
-- **Ubuntu 20.04 or higher** (Ubuntu 24.04 recommended)
-- Sudo access to the server
-- Internet connection to download packages
+* **Operating System**: **Ubuntu 20.04 or higher** (Ubuntu 24.04 recommended).
+* **Privileges**: Sudo access to the server.
+* **Connectivity**: Active Internet connection to download packages and container images.
+* **Firewall Configuration**: If your environment is behind a firewall or uses Security Groups, the following **Inbound Rules** must be enabled:
+
+| Service | Port | Description |
+| :--- | :--- | :--- |
+| **SSH** | 22 | Remote Access |
+| **HTTP / HTTPS** | 80 / 443 | Web Traffic |
+| **NDR** | 3000 | Network Detection & Response |
+| **NSE Backend** | 3002 | Network Security Engine |
+| **PPCTI Frontend** | 3100 | Threat Intelligence UI |
+| **IOB STIX** | 3400 | Indicator of Behavior |
+| **Shuffle** | 3443 | Automation / SOAR |
+| **GraphQL** | 4001 | API Gateway |
+| **SACD** | 4200 | Security Analytics |
+| **NSE Frontend** | 4201 | Network Security UI |
+| **Wazuh** | 4433 | Manager Connection |
+| **iSIM Automation**| 5000 | Automation Service |
+| **DFIR** | 5005 | Forensics Module |
+| **Neo4j** | 7474 / 7687 | Graph Database (UI & Internal) |
+| **iSIM** | 8000 | Information Security Management |
+| **THF API** | 8030 | Threat Hunting API |
+| **PPCTI Anonymizer**| 8070 | Anonymization Service |
+| **Temporal** | 8080 | Workflow Orchestration |
+| **Landing Page** | 8181 | Portal Access |
+| **THF UI** | 8501 | Threat Hunting UI |
+| **IOB Sanic** | 9003 | IOB Backend |
+| **IOB Flow Builder**| 9080 | Workflow Builder |
+| **Wazuh Indexer** | 9201 | Security Indexing |
+| **MISP** | 10443 | Malware Information Sharing |
+| **NDR Server** | 31057 | NDR Internal Server |
+
+* **Domain Whitelisting**: Ensure the following domains are reachable for updates and image pulling:
+    * `github.com` | **TCP 443**
+    * `*.docker.io` | **TCP 443**
+    * `*.docker.com` | **TCP 443**
+    * `ghcr.io` | **TCP 443**
 
 ### Installing Docker and Docker Compose
 
@@ -321,6 +362,11 @@ docker compose version
 docker run hello-world
 ```
 
+All tests were performed using these versions:
+<p align="center">
+  <img src="_static/docker_version.png" alt="Docker version" width="400">
+</p>
+
 ### Obtaining a GitHub Token
 
 To clone the private repository, you need a GitHub token:
@@ -355,13 +401,45 @@ cd Docker-Compose
 
 **This section applies to both AWS and On-Premise deployments.**
 
-Once you have:
-
-- ✅ Server with Docker and Docker Compose installed
-
-- ✅ `Docker-Compose` repository cloned
+### API Key Collection for Resilmesh Platform v2 Environment
+**First, make sure you have the keys you'll need**:
+* **Aggregation Plane**: If your environment includes the deployment of the **Aggregation Plane**, a valid **SLP Enrichment API Key** is required prior to installation. If you do not have one, please contact **Maja Otic (motic@silentpush.com)**.
+* **Threat Awareness Plane**: If your environment deploys the **Threat Awareness Plane**, specifically the **Threat Hunting and Forensics (THF)** module, please note it consists of two core components:
+    * **DFIR**: Requires the corresponding API keys for the LLM models to be utilized (e.g., **Alias, Anthropic Claude 4 Sonnet, Ollama**, or others).
+    * **THFramework**: This component specifically requires an **Anthropic Claude 4 Sonnet** API key for its operation.
 
 Proceed with the following steps to deploy the application stack.
+
+### Files Structure
+
+As previously described, several key Bash scripts and configuration files have been developed to manage the deployment of the Resilmesh platform. The following components, housed in the `/Scripts` folder of the Docker Compose repository, orchestrate the deployment process:
+
+* **init.sh**: The primary execution script that initiates the entire deployment workflow. It prompts the user for the target environment type (Domain, IT Domain, or IoT Domain) and triggers the appropriate subsequent configuration.
+* **Full_Platform.sh**: This file contains all the necessary configuration code to deploy the complete Resilmesh infrastructure. This includes setting up environment variables, generating specific system variables, and defining all required network configurations for a full installation.
+<p align="center">
+  <img src="_static/full_platform.png" alt="Full Platform" width="400">
+</p>
+
+* **Domain.sh**: A specialized version derived from the Full Platform configuration. It exclusively includes the necessary configurations for deploying components relevant to a general Domain environment.
+<p align="center">
+  <img src="_static/domain_platform.png" alt="Domain Platform" width="400">
+</p>
+
+* **IT_Domain.sh**: A tailored configuration file based on the Full Platform schema. It is optimized to include only the required settings for components that must be deployed within an IT Domain environment.
+<p align="center">
+  <img src="_static/it_domain_platform.png" alt="IT Domain Platform" width="400">
+</p>
+
+* **IoT_Domain.sh**: A dedicated configuration file adapted from the Full Platform schema. It strictly includes the necessary settings for components designated for deployment within an IoT Domain environment.
+<p align="center">
+  <img src="_static/iot_domain_platform.png" alt="IoT Domain Platform" width="400">
+</p>
+
+In addition to the deployment files, a specific utility script has been developed to manage and reverse the deployment process. This remover script is executed as a first step when executing `init.sh` to ensure a clean deployment:
+
+* **remove_all.sh**: A dedicated Bash script designed to fully destroy all infrastructure and components created by the preceding deployment scripts.
+    * **Use Case**: This script is executed inside `init.sh` but it can be executed separately if a manual or systemic error occurs during or after deployment, or if configuration errors are detected in the deployed components. It serves as a necessary cleanup mechanism to ensure a clean slate for redeployment.
+    * **Description**: Contains the logic to reverse the component deployments, ensuring all residual artifacts, network configurations, and containers are successfully removed.
 
 ### Start the Resilmesh deployment script
 - First of all, log in to Doker with your account
@@ -387,7 +465,7 @@ Depending on your configuration, services will be available at:
 - **AWS (Terraform):** `http://<ELASTIC_IP>:<port>`
 - **On-Premise:** `http://<SERVER_IP>:<port>` or `http://localhost:<port>`
 
-Consult the `output_summary.txt` file to see the exposed ports for each service.
+Once the script execution is complete, the `Docker-Compose/Scripts/output_summary.txt` file will be generated, which contains all the paths and ports for accessing the exposed services.
 
 ---
 

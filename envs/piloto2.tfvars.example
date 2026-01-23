@@ -1,4 +1,4 @@
-region  = "eu-south-2"
+region  = "eu-west-1"
 profile = "default"
 client_public_ssh_keys = [
     "ssh-ed25519 AC456xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Marcos",
