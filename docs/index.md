@@ -1,4 +1,4 @@
-# Resilmesh v2: Deployment Guide
+# Resilmesh v2 - Deployment Guide
 
 This documentation covers two deployment options for the **Resilmesh v2** environment:
 
@@ -92,13 +92,13 @@ flowchart LR
 
 ### Prerequisites
 
-- **Terraform >= 1.6**
-- AWS credentials configured locally (e.g., via `aws configure --profile <profile>`)
-- An AWS account with permissions to create:
-  - VPC/Subnet/Route Tables/IGW/Security Groups
-  - IAM Roles + Instance Profiles
-  - EC2 instances + EIP
-- GitHub token with **minimum required scopes** to read the private repository used in bootstrap (`https://github.com/resilmesh2/Docker-Compose/`)
+* **Terraform >= 1.6**
+* AWS credentials configured locally (e.g., via `aws configure --profile <profile>`)
+* An AWS account with permissions to create:
+    * VPC/Subnet/Route Tables/IGW/Security Groups
+    * IAM Roles + Instance Profiles
+    * EC2 instances + EIP
+* GitHub token with **minimum required scopes** to read the private repository used in bootstrap (`https://github.com/resilmesh2/Docker-Compose/`)
 
 ### Configuration
 
@@ -116,13 +116,13 @@ To allow the EC2 instance to clone the private repository (`resilmesh2/Docker-Co
 This deployment disables password authentication for security. You must provide an **SSH Public Key** to access the server. The module is optimized for `ed25519` keys.
 
 1. **Check for existing keys:**
-   ```bash
-   cat ~/.ssh/id_ed25519.pub
-   ```
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
 2. **Generate a new pair (if needed):**
-   ```bash
-   ssh-keygen -t ed25519 -C "your_email@example.com"
-   ```
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
 3. **Copy the key:** Copy the entire content of the `.pub` file. You will add this string to the `client_public_ssh_keys` list in your `tfvars` file.
 
 #### AWS CLI
@@ -130,13 +130,13 @@ This deployment disables password authentication for security. You must provide 
 Terraform interacts with AWS using your local credentials. You must have the AWS CLI installed and configured.
 
 1. **Install AWS CLI:**
-   Follow the [official AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) for your operating system.
+Follow the [official AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) for your operating system.
 
 2. **Configure the Profile:**
-   The example configuration uses a named profile (`Resilmesh`). Configure it by running:
-   ```bash
-   aws configure --profile Resilmesh
-   ```
+The example configuration uses a named profile (`Resilmesh`). Configure it by running:
+```bash
+aws configure --profile Resilmesh
+```
 
 3. **Enter Credentials:**
    When prompted, provide your **Access Key ID**, **Secret Access Key**, and the target **Region** (e.g., `eu-south-2`).
@@ -172,14 +172,14 @@ my_ips = [
 ##### Why `envs/piloto2.tfvars` matters
 
 Keeping configuration in `envs/piloto2.tfvars` helps you:
-- **Separate code from configuration** (same Terraform code can deploy different environments)
-- **Reproducibly control access** via `my_ips` (tight allowlist rather than open inbound)
-- **Rotate credentials easily** (e.g., change GitHub token or SSH keys without touching module code)
-- **Switch AWS target context** with `region` + `profile` (avoids accidental deployments to the wrong account/region)
+* **Separate code from configuration** (same Terraform code can deploy different environments)
+* **Reproducibly control access** via `my_ips` (tight allowlist rather than open inbound)
+* **Rotate credentials easily** (e.g., change GitHub token or SSH keys without touching module code)
+* **Switch AWS target context** with `region` + `profile` (avoids accidental deployments to the wrong account/region)
 
 ### Deployment Steps
 
-> The following commands should be run from the root directory of the repository, using a terminal.
+The following commands should be run from the root directory of the repository, using a terminal.
 
 #### Initialize
 
@@ -221,7 +221,7 @@ After `apply`, Terraform returns:
 
 ### Cleanup
 
-> This will remove the infrastructure created by this repo, including the EC2 instance, EIP, and network components.
+This will remove the infrastructure created by this repo, including the EC2 instance, EIP, and network components.
 
 **PowerShell (Windows):**
 ```powershell
@@ -251,7 +251,7 @@ Ensure `profile` in your tfvars matches a configured AWS CLI profile.
 
 #### Error when trying to enter via ssh
 
-If you rebuilt the instance but did not do so with the EIP (the public IP remains the same), you will likely see a WARNING window. In that case, use this command and then try logging in again:
+If you rebuilt the instance but did not do so with the EIP (the public IP remains the same), you will likely see a **Warning** window. In that case, use this command and then try logging in again:
 ```bash
 ssh-keygen -R <Public IP>
 ```
@@ -370,7 +370,6 @@ All tests were performed using these versions:
 ### Obtaining a GitHub Token
 
 To clone the private repository, you need a GitHub token:
-
 1. Navigate to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
 2. Click **Generate new token (classic)**
 3. **Scopes:** Select the `repo` scope (Full control of private repositories)
@@ -402,7 +401,8 @@ cd Docker-Compose
 **This section applies to both AWS and On-Premise deployments.**
 
 ### API Key Collection for Resilmesh Platform v2 Environment
-**First, make sure you have the keys you'll need**:
+
+First, make sure you have the keys you'll need:
 * **Aggregation Plane**: If your environment includes the deployment of the **Aggregation Plane**, a valid **SLP Enrichment API Key** is required prior to installation. If you do not have one, please contact **Maja Otic (motic@silentpush.com)**.
 * **Threat Awareness Plane**: If your environment deploys the **Threat Awareness Plane**, specifically the **Threat Hunting and Forensics (THF)** module, please note it consists of two core components:
     * **DFIR**: Requires the corresponding API keys for the LLM models to be utilized (e.g., **Alias, Anthropic Claude 4 Sonnet, Ollama**, or others).
@@ -417,22 +417,22 @@ As previously described, several key Bash scripts and configuration files have b
 * **init.sh**: The primary execution script that initiates the entire deployment workflow. It prompts the user for the target environment type (Domain, IT Domain, or IoT Domain) and triggers the appropriate subsequent configuration.
 * **Full_Platform.sh**: This file contains all the necessary configuration code to deploy the complete Resilmesh infrastructure. This includes setting up environment variables, generating specific system variables, and defining all required network configurations for a full installation.
 <p align="center">
-  <img src="_static/full_platform.png" alt="Full Platform" width="400">
+  <img src="_static/full_platform.png" alt="Full Platform" width="800">
 </p>
 
 * **Domain.sh**: A specialized version derived from the Full Platform configuration. It exclusively includes the necessary configurations for deploying components relevant to a general Domain environment.
 <p align="center">
-  <img src="_static/domain_platform.png" alt="Domain Platform" width="400">
+  <img src="_static/domain_platform.png" alt="Domain Platform" width="800">
 </p>
 
 * **IT_Domain.sh**: A tailored configuration file based on the Full Platform schema. It is optimized to include only the required settings for components that must be deployed within an IT Domain environment.
 <p align="center">
-  <img src="_static/it_domain_platform.png" alt="IT Domain Platform" width="400">
+  <img src="_static/it_domain_platform.png" alt="IT Domain Platform" width="800">
 </p>
 
 * **IoT_Domain.sh**: A dedicated configuration file adapted from the Full Platform schema. It strictly includes the necessary settings for components designated for deployment within an IoT Domain environment.
 <p align="center">
-  <img src="_static/iot_domain_platform.png" alt="IoT Domain Platform" width="400">
+  <img src="_static/iot_domain_platform.png" alt="IoT Domain Platform" width="800">
 </p>
 
 In addition to the deployment files, a specific utility script has been developed to manage and reverse the deployment process. This remover script is executed as a first step when executing `init.sh` to ensure a clean deployment:
