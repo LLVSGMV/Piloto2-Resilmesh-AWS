@@ -1,13 +1,2 @@
-site_name: Resilmesh Pilot2
-
-theme:
-  name: material
-  palette: 
-    scheme: default
-
-markdown_extensions:
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+site_name: Documentation of Resilmesh Proyect
+theme: readthedocs

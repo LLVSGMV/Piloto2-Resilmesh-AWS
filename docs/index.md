@@ -53,16 +53,9 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
 
 ### Architecture
 
-```mermaid
-flowchart LR
-  Internet([Internet]) -->|Allowed source IPs only| SG["Security Groups<br/>per-IP allowlist"]
-  SG --> EIP[Elastic IP]
-  EIP --> EC2[EC2 Ubuntu 24.04]
-  EC2 -->|Default route| RT[Public Route Table]
-  RT --> IGW[Internet Gateway]
-  IGW --> Internet
-  EC2 --> IAM["IAM Instance Profile<br/>SSM Core"]
-```
+<p align="center">
+  <img src="_static/flowchart.png" alt="Architecture" width="400">
+</p>
 
 ### Repository Structure
 
