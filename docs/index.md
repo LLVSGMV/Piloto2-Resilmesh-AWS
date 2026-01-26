@@ -54,7 +54,7 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
 ### Architecture
 
 <p align="center">
-  <img src="_static/flowchart.png" alt="Architecture" width="400">
+  <img src="_static/flowchart.png" alt="Architecture" width="800">
 </p>
 
 ### Repository Structure
