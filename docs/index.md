@@ -52,16 +52,15 @@ It deploys networking, IAM, and a single EC2 instance ready to run containers (D
     * Clones `resilmesh2/Docker-Compose` with submodules using a GitHub token
 
 ### Architecture
-```
+
 flowchart LR
-  Internet([Internet]) -->|Allowed source IPs only| SG[Security Groups<br/>per-IP allowlist]
-  SG --> EIP[Elastic IP]
-  EIP --> EC2[EC2 Ubuntu 24.04]
-  EC2 -->|Default route| RT[Public Route Table]
-  RT --> IGW[Internet Gateway]
-  IGW --> Internet
-  EC2 --> IAM[IAM Instance Profile<br/>SSM Core]
-```
+    Internet([Internet]) -->|Allowed source IPs only| SG[Security Groups<br/>per-IP allowlist]
+    SG --> EIP[Elastic IP]
+    EIP --> EC2[EC2 Ubuntu 24.04]
+    EC2 -->|Default route| RT[Public Route Table]
+    RT --> IGW[Internet Gateway]
+    IGW --> Internet
+    EC2 --> IAM[IAM Instance Profile<br/>SSM Core]
 
 ### Repository Structure
 
@@ -152,6 +151,7 @@ This repo uses a **tfvars** file to keep environment-specific inputs together.
 ```hcl
 region  = "eu-west-1"
 profile = "Resilmesh"
+instance_type = "m5.4xlarge"
 
 # Public keys allowed to SSH into the instance as ubuntu
 client_public_ssh_keys = [
@@ -168,6 +168,7 @@ my_ips = [
   "203.0.113.11/32",
 ]
 ```
+We use the EC2 instance type shown here to perform all tests.
 
 ##### Why `envs/piloto2.tfvars` matters
 
@@ -266,6 +267,7 @@ This option allows you to deploy Resilmesh on a physical server or local virtual
 
 ### Prerequisites
 
+* **Server**: A server (physical or virtual) with at least **16 CPUs/vCPUs** and **64 GiB of RAM memory**.
 * **Operating System**: **Ubuntu 20.04 or higher** (Ubuntu 24.04 recommended).
 * **Privileges**: Sudo access to the server.
 * **Connectivity**: Active Internet connection to download packages and container images.
@@ -279,23 +281,23 @@ This option allows you to deploy Resilmesh on a physical server or local virtual
 | **NSE Backend** | 3002 | Network Security Engine |
 | **PPCTI Frontend** | 3100 | Threat Intelligence UI |
 | **IOB STIX** | 3400 | Indicator of Behavior |
-| **Shuffle** | 3443 | Automation / SOAR |
-| **GraphQL** | 4001 | API Gateway |
-| **SACD** | 4200 | Security Analytics |
+| **Shuffle** | 3443 | Automation / SOAR - Playbooks Tool |
+| **GraphQL** | 4001 | ISIM GraphQL |
+| **SACD** | 4200 | Security Analytics Dashboard |
 | **NSE Frontend** | 4201 | Network Security UI |
-| **Wazuh** | 4433 | Manager Connection |
+| **Wazuh** | 4433 | SIEM - Wazuh Dashboard |
 | **iSIM Automation**| 5000 | Automation Service |
-| **DFIR** | 5005 | Forensics Module |
-| **Neo4j** | 7474 / 7687 | Graph Database (UI & Internal) |
-| **iSIM** | 8000 | Information Security Management |
-| **THF API** | 8030 | Threat Hunting API |
+| **DFIR** | 5005 | Threat Hunting and Forensics Module 1 |
+| **Neo4j** | 7474 / 7687 | Graph Database (UI / Internal) |
+| **iSIM** | 8000 | API - Django REST Framework |
+| **THF API** | 8030 | Threat Hunting Framework API |
 | **PPCTI Anonymizer**| 8070 | Anonymization Service |
 | **Temporal** | 8080 | Workflow Orchestration |
-| **Landing Page** | 8181 | Portal Access |
-| **THF UI** | 8501 | Threat Hunting UI |
+| **Landing Page** | 8181 | Portal Access to Services |
+| **THF UI** | 8501 | Threat Hunting Framework UI |
 | **IOB Sanic** | 9003 | IOB Backend |
 | **IOB Flow Builder**| 9080 | Workflow Builder |
-| **Wazuh Indexer** | 9201 | Security Indexing |
+| **Wazuh Indexer** | 9201 | Wazuh Opensearch Service |
 | **MISP** | 10443 | Malware Information Sharing |
 | **NDR Server** | 31057 | NDR Internal Server |
 
@@ -415,9 +417,9 @@ Proceed with the following steps to deploy the application stack.
 
 ### Files Structure
 
-As previously described, several key Bash scripts and configuration files have been developed to manage the deployment of the Resilmesh platform. The following components, housed in the `/Scripts` folder of the Docker Compose repository, orchestrate the deployment process:
+Several key Bash scripts and configuration files have been developed to manage the deployment of the Resilmesh platform. The following components, housed in the `/Scripts` folder of the Docker Compose repository, orchestrate the deployment process:
 
-* **init.sh**: The primary execution script that initiates the entire deployment workflow. It prompts the user for the target environment type (Domain, IT Domain, or IoT Domain) and triggers the appropriate subsequent configuration.
+* **init.sh**: The primary execution script that initiates the entire deployment workflow. It prompts the user for the target environment type (Full Platform, Domain Platform, IT Domain Platform, or IoT Domain Platform) and triggers the appropriate subsequent configuration.
 * **Full_Platform.sh**: This file contains all the necessary configuration code to deploy the complete Resilmesh infrastructure. This includes setting up environment variables, generating specific system variables, and defining all required network configurations for a full installation.
 <p align="center">
   <img src="_static/full_platform.png" alt="Full Platform" width="800">

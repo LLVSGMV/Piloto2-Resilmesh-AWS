@@ -1,5 +1,6 @@
 region  = "eu-west-1"
 profile = "default"
+instance_type = "m5.4xlarge"
 client_public_ssh_keys = [
     "ssh-ed25519 AC456xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Marcos",
     "ssh-ed25519 AH967xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Antonio"
